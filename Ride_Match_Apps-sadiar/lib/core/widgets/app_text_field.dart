@@ -1,0 +1,46 @@
+import 'package:flutter/material.dart';
+
+class AppTextField extends StatelessWidget {
+  const AppTextField({
+    super.key,
+    required this.controller,
+    this.label,
+    this.hint,
+    this.obscureText = false,
+    this.keyboardType,
+    this.validator,
+    this.textInputAction,
+    this.onFieldSubmitted,
+    this.prefixIcon,
+    this.suffixIcon,
+  });
+
+  final TextEditingController controller;
+  final String? label;
+  final String? hint;
+  final bool obscureText;
+  final TextInputType? keyboardType;
+  final String? Function(String?)? validator;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onFieldSubmitted;
+  final Widget? prefixIcon;
+  final Widget? suffixIcon;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      validator: validator,
+      textInputAction: textInputAction,
+      onFieldSubmitted: onFieldSubmitted,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon,
+      ),
+    );
+  }
+}

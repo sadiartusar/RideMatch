@@ -1,0 +1,451 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+
+import '../../../core/routes/app_routes.dart';
+import '../../onboarding/models/user_mode.dart';
+import '../../onboarding/services/mode_service.dart';
+import '../models/otp_args.dart';
+
+class PhoneSignupView extends StatefulWidget {
+  const PhoneSignupView({super.key});
+
+  @override
+  State<PhoneSignupView> createState() => _PhoneSignupViewState();
+}
+
+class _PhoneSignupViewState extends State<PhoneSignupView> {
+  late final TextEditingController _phoneController;
+  final _passwordController = TextEditingController(text: 'password');
+  final _confirmController = TextEditingController(text: 'password');
+
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
+  ModeService? _modeService;
+
+  @override
+  void initState() {
+    super.initState();
+    final phone = Get.arguments is String ? Get.arguments as String : '';
+    _phoneController = TextEditingController(
+      text: phone.isNotEmpty ? phone : '+1-587 1XXXXXXXXX',
+    );
+    if (Get.isRegistered<ModeService>()) {
+      _modeService = Get.find<ModeService>();
+    }
+  }
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  void _continue() {
+    final phone = _phoneController.text.trim();
+    if (phone.isEmpty) {
+      Get.snackbar('Phone Required', 'Please enter your phone number.');
+      return;
+    }
+    Get.toNamed(
+      AppRoutes.otp,
+      arguments: OtpArgs(destination: phone, isNewUser: true),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final mode = _modeService?.rxCurrentMode.value;
+      final isDark = mode == UserMode.driver;
+
+      final backgroundColor = isDark ? const Color(0xFF0B0D0F) : Colors.white;
+      final overlayStyle = isDark
+          ? SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent)
+          : SystemUiOverlayStyle.dark.copyWith(statusBarColor: Colors.transparent);
+
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: overlayStyle,
+        child: Scaffold(
+          backgroundColor: backgroundColor,
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 12),
+                  Text(
+                    'RIDEMATCH',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.4,
+                      color: isDark
+                          ? const Color(0xFF3DF416)
+                          : const Color(0xFF15803D),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Create Account',
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.6,
+                      color: isDark ? Colors.white : const Color(0xFF111827),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Sign in or create an account to start matching',
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w400,
+                      color: isDark
+                          ? const Color(0xFF9CA3AF)
+                          : const Color(0xFF6B7280),
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  _LabeledField(
+                    isDark: isDark,
+                    label: 'ENTER YOUR PHONE NUMBER',
+                    child: TextField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      style: _fieldStyle(isDark),
+                      decoration: _inputDecoration(isDark),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  _LabeledField(
+                    isDark: isDark,
+                    label: 'ENTER PASSWORD',
+                    child: TextField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      style: _fieldStyle(isDark),
+                      decoration: _inputDecoration(
+                        isDark,
+                        suffix: _EyeToggle(
+                          isDark: isDark,
+                          obscured: _obscurePassword,
+                          onTap: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  _LabeledField(
+                    isDark: isDark,
+                    label: 'CONFIRM PASSWORD',
+                    child: TextField(
+                      controller: _confirmController,
+                      obscureText: _obscureConfirm,
+                      style: _fieldStyle(isDark),
+                      decoration: _inputDecoration(
+                        isDark,
+                        suffix: _EyeToggle(
+                          isDark: isDark,
+                          obscured: _obscureConfirm,
+                          onTap: () => setState(
+                            () => _obscureConfirm = !_obscureConfirm,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: Material(
+                      color: const Color(0xFF3DF416),
+                      borderRadius: BorderRadius.circular(16),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: _continue,
+                        child: const Center(
+                          child: Text(
+                            'Continue',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF0F172A),
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 1,
+                          color: isDark
+                              ? const Color(0xFF22262B)
+                              : const Color(0xFFE5E7EB),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Text(
+                          'or',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w500,
+                            color: isDark
+                                ? const Color(0xFF6B7280)
+                                : const Color(0xFF9CA3AF),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(
+                          height: 1,
+                          color: isDark
+                              ? const Color(0xFF22262B)
+                              : const Color(0xFFE5E7EB),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+                  _SocialButton(
+                    isDark: isDark,
+                    isApple: true,
+                    label: 'Continue with Apple',
+                    leading: const Text('🍎', style: TextStyle(fontSize: 18)),
+                    onTap: () => Get.toNamed(AppRoutes.appleSignIn),
+                  ),
+                  const SizedBox(height: 12),
+                  _SocialButton(
+                    isDark: isDark,
+                    label: 'Continue with Google',
+                    leading: Text(
+                      'G',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : const Color(0xFF111827),
+                      ),
+                    ),
+                    onTap: () => Get.toNamed(AppRoutes.googleSignIn),
+                  ),
+                  const SizedBox(height: 32),
+                  Center(
+                    child: Text.rich(
+                      TextSpan(
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          height: 1.45,
+                          color: isDark
+                              ? const Color(0xFF9CA3AF)
+                              : const Color(0xFF6B7280),
+                        ),
+                        children: const [
+                          TextSpan(text: 'By continuing, you agree to our '),
+                          TextSpan(
+                            text: 'Terms of Service',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                          TextSpan(text: ' and '),
+                          TextSpan(
+                            text: 'Privacy Policy',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  TextStyle _fieldStyle(bool isDark) {
+    return TextStyle(
+      fontSize: 14.5,
+      fontWeight: FontWeight.w500,
+      color: isDark ? Colors.white : const Color(0xFF111827),
+    );
+  }
+
+  InputDecoration _inputDecoration(bool isDark, {Widget? suffix}) {
+    return InputDecoration(
+      filled: true,
+      fillColor: isDark ? const Color(0xFF1B1E23) : const Color(0xFFF3F4F6),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: isDark ? const Color(0xFF3DF416) : const Color(0xFF15803D),
+          width: 1.2,
+        ),
+      ),
+      suffixIcon: suffix,
+    );
+  }
+}
+
+class _LabeledField extends StatelessWidget {
+  const _LabeledField({
+    required this.isDark,
+    required this.label,
+    required this.child,
+  });
+
+  final bool isDark;
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.8,
+            color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+          ),
+        ),
+        const SizedBox(height: 10),
+        child,
+      ],
+    );
+  }
+}
+
+class _EyeToggle extends StatelessWidget {
+  const _EyeToggle({
+    required this.isDark,
+    required this.obscured,
+    required this.onTap,
+  });
+
+  final bool isDark;
+  final bool obscured;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: onTap,
+      icon: Icon(
+        obscured ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+        size: 20,
+        color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF9CA3AF),
+      ),
+    );
+  }
+}
+
+class _SocialButton extends StatelessWidget {
+  const _SocialButton({
+    required this.isDark,
+    required this.label,
+    required this.leading,
+    required this.onTap,
+    this.isApple = false,
+  });
+
+  final bool isDark;
+  final String label;
+  final Widget leading;
+  final VoidCallback onTap;
+  final bool isApple;
+
+  @override
+  Widget build(BuildContext context) {
+    late final Color bg;
+    late final Border? border;
+    late final Color textColor;
+    late final Color chevronColor;
+
+    if (isApple) {
+      if (isDark) {
+        bg = const Color(0xFF181A1D);
+        border = Border.all(color: const Color(0xFF262A2E), width: 1.2);
+        textColor = Colors.white;
+        chevronColor = const Color(0xFF4B5563);
+      } else {
+        bg = const Color(0xFF111214);
+        border = null;
+        textColor = Colors.white;
+        chevronColor = const Color(0xFF6B7280);
+      }
+    } else if (isDark) {
+      bg = const Color(0xFF181A1D);
+      border = Border.all(color: const Color(0xFF262A2E), width: 1.2);
+      textColor = Colors.white;
+      chevronColor = const Color(0xFF4B5563);
+    } else {
+      bg = Colors.white;
+      border = Border.all(color: const Color(0xFFE5E7EB), width: 1.2);
+      textColor = const Color(0xFF111827);
+      chevronColor = const Color(0xFF9CA3AF);
+    }
+
+    return Container(
+      height: 54,
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(16),
+        border: border,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Row(
+              children: [
+                SizedBox(width: 24, height: 24, child: Center(child: leading)),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, size: 20, color: chevronColor),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
